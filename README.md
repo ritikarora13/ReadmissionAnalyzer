@@ -6,4 +6,4 @@ supporting further predictive big data analytics and the infrastructure for mach
 
 License
 ----------
-**AdminBSB - Material Design** is an open source project that is licensed under the [MIT license](http://opensource.org/licenses/MIT).
+**AdminBSB - Material Design** is an open source UI that is licensed under the [MIT license](http://opensource.org/licenses/MIT).

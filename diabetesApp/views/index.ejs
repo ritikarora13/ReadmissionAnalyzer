@@ -1,0 +1,83 @@
+<html>
+<head>
+	<title>My Customer App</title>
+	<link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+</head>
+<body>
+
+	
+
+	<div class="container">
+		<div class="row">
+			<h3>Hello From EJS <%= title %></h3>
+			<div class="col-md-offset-2">
+
+				<table class="table">
+			  	<thead>
+				    <tr>
+				      	<th scope="col">Encounter No.</th>
+				      	<th scope="col">Patient Name</th>
+				      	<th scope="col">Admission date</th>
+						<th scope="col">Discharge Date</th>
+				      	<th scope="col">Race</th>
+				      	<th scope="col">Gender</th>
+				      	<th scope="col">Admission Source</th>
+				      	<th scope="col">Lace Result</th>
+				      	<th scope="col">Readmission Result</th>
+				     	<th scope="col">Risk of Readmission</th>
+				    </tr>
+			  	</thead>
+			  	<tbody>
+			  		<% diabetes_data.forEach(function(patient){ %>
+				    <tr>
+				      <td><%= patient.encounter_id%></td>
+				      <td><%= patient.patient_name%></td>
+				      <td><%= new Date(patient.admission_date).toLocaleDateString('en-US',{ year: 'numeric', month: 'long', day: 'numeric' })%></td>
+				      <td><%= new Date(patient.discharge_date).toLocaleDateString('en-US',{ year: 'numeric', month: 'long', day: 'numeric' })%></td>
+				      <td><%= patient.race%></td>
+				      <td><%= patient.gender%></td>
+				      <td><%= patient.admission_source%></td>
+				      <td><%= patient.lace_result%></td>
+				      <td><%= patient.readmission_result%></td>
+				      <td><%= patient.risk_of_readmission%></td>
+				    </tr>
+			    	<% }) %>
+			  	</tbody>
+				</table>
+				<nav aria-label="Page navigation example">
+				  <ul class="pagination justify-content-end">
+				  	<% if (current_page == 1) { %>
+				  		<li class="page-item disabled"><a class="page-link">Previous</a></li>
+				  	<% } else { 
+				  		var prev = Number(current_page) - 1;
+				  		%>
+						<li class="page-item"><a class="page-link" href="/diabetesList?page=<%= prev%>">Previous</a></li>
+				  	<% } %>
+				    <% for (i=1; i <= page_count; i++) {
+				    	if (i==current_page) { %>
+				    	<li class="page-item active"><a class="page-link"><%= i%></a>
+				    	<% } else { %>
+				    	<li class="page-item"><a class="page-link" href="/diabetesList?page=<%= i%>"><%= i%></a></li>
+				    <% }
+				     } %>
+
+				    <% if (current_page == page_count) { %>
+				    	<li class="page-item disabled"><a class="page-link">Next</a></li>
+				    <% } else {
+				    	var next = Number(current_page)	 + 1; %>
+				    	<li class="page-item"><a class="page-link" href="/diabetesList?page=<%= next%>">Next</a></li>
+				    <% } %>
+				    
+				  </ul>
+				</nav>
+				
+				
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+	<script type="text/javascript" src="/js/bootstrap.js"></script>
+
+</body>
+</html>	

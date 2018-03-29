@@ -79,7 +79,7 @@ app.get('/diabetesList', function(req, res, next){
 	var start_date = start_date + '-01-01';
 	var end_date = req.query.end_date || '2010';
 	var end_date = end_date + '-12-31';
-	var params = [start_date,end_date];
+	var params = [start_date,end_date, offset,limit];
 	
 	const selectParams = 'encounter_id, patient_nbr ,patient_name, admission_date, ' +
 	'discharge_date, gender, age_category, race, admission_source, admission_type, ' +
@@ -95,7 +95,7 @@ app.get('/diabetesList', function(req, res, next){
 	    rowCount = countRes.rows[0]['count'];
 
 	    // To get the data based on offset and limit
-	    pool.query(dataQuery, [start_date, end_date, offset,limit])
+	    pool.query(dataQuery, params)
 	    	.then(result => {
 	    		res.render('patient_list', {
 					title: 'Diabetes App',

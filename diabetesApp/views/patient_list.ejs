@@ -844,13 +844,13 @@
                                 <% } else { 
                                     var prev = Number(current_page) - 1;
                                     %>
-                                    <li class="page-item"><a class="page-link" href="/diabetesList?page=<%= prev%>">Previous</a></li>
+                                    <li class="page-item"><a class="page-link" href="/diabetesList?start_year=<%= start_year%>&end_year=<%= end_year%>&page=<%= prev%>">Previous</a></li>
                                 <% } %>
                                 <% for (i=1; i <= page_count; i++) {
                                     if (i==current_page) { %>
                                     <li class="page-item active"><a class="page-link"><%= i%></a>
                                     <% } else { %>
-                                    <li class="page-item"><a class="page-link" href="/diabetesList?page=<%= i%>"><%= i%></a></li>
+                                    <li class="page-item"><a class="page-link" href="/diabetesList?start_year=<%= start_year%>&end_year=<%= end_year%>&page=<%= i%>"><%= i%></a></li>
                                 <% }
                                  } %>
 
@@ -858,7 +858,7 @@
                                     <li class="page-item disabled"><a class="page-link">Next</a></li>
                                 <% } else {
                                     var next = Number(current_page)  + 1; %>
-                                    <li class="page-item"><a class="page-link" href="/diabetesList?page=<%= next%>">Next</a></li>
+                                    <li class="page-item"><a class="page-link" href="/diabetesList?start_year=<%= start_year%>&end_year=<%= end_year%>&page=<%= next%>">Next</a></li>
                                 <% } %>
                                 
                               </ul>

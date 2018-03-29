@@ -47,15 +47,19 @@ app.get('/patientlist', function(req, res, next){
 	'readmission_result, lace_result, risk_of_readmission';
 	const query = 'SELECT '+ selectParams +' FROM patient_diabetes_data where admission_date >= $1 and admission_date <= $2';
 
-	var start_date = req.query.start_date || '1990';
-	var start_date = start_date + '-01-01';
-	var end_date = req.query.end_date || '2010';
-	var end_date = end_date + '-12-31';
+	var start_year = req.query.start_year || '1990';
+	var start_date = start_year + '-01-01';
+	var end_year = req.query.end_year || '2010';
+	var end_date = end_year + '-12-31';
 	var params = [start_date,end_date];
 	
 	pool.query(query, params)
 	  .then(result => {
-	    res.json({diabetes_data: result.rows})
+	    res.json({
+	    		diabetes_data: result.rows,
+	    		start_year: start_year,
+				end_year: end_year
+			});
 	  })
 	  .catch(e => console.error(e.stack))
 
@@ -69,17 +73,17 @@ app.get('/diabetesList', function(req, res, next){
 	  process.exit(-1);
 	});
 
-	const countQuery = 'SELECT count(*) FROM patient_diabetes_data';
+	const countQuery = 'SELECT count(*) FROM patient_diabetes_data where admission_date >= $1 and admission_date <= $2';
 	var rowCount = 0;
 
 	var page = req.query.page || 1;	
 	var offset = (page - 1) * limit;
 
-	var start_date = req.query.start_date || '1990';
-	var start_date = start_date + '-01-01';
-	var end_date = req.query.end_date || '2010';
-	var end_date = end_date + '-12-31';
-	var params = [start_date,end_date, offset,limit];
+	var start_year = req.query.start_year || '1990';
+	var start_date = start_year + '-01-01';
+	var end_year = req.query.end_year || '2010';
+	var end_date = end_year + '-12-31';
+	var params = [start_date, end_date, offset,limit];
 	
 	const selectParams = 'encounter_id, patient_nbr ,patient_name, admission_date, ' +
 	'discharge_date, gender, age_category, race, admission_source, admission_type, ' +
@@ -90,7 +94,7 @@ app.get('/diabetesList', function(req, res, next){
 		
 
 	// To get the total count of records
-	pool.query(countQuery)
+	pool.query(countQuery, [start_date, end_date])
 	  .then(countRes => {
 	    rowCount = countRes.rows[0]['count'];
 
@@ -101,7 +105,9 @@ app.get('/diabetesList', function(req, res, next){
 					title: 'Diabetes App',
 					diabetes_data: result.rows,
 					current_page: page,
-					page_count: Math.ceil(rowCount / limit)
+					page_count: Math.ceil(rowCount / limit),
+					start_year: start_year,
+					end_year: end_year
 				});
 	    	})
 	    	.catch(e => console.error(e.stack))

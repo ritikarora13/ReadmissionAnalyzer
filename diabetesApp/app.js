@@ -10,6 +10,7 @@ const app = express();
 
 const port = 3000;
 const limit = 7;
+const strDate = '';
 
 
 // DB connect client
@@ -39,18 +40,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/patientlist', function(req, res, next){
 
-	client.connect();
+	
+	const selectParams = 'encounter_id, patient_nbr ,patient_name, admission_date, ' +
+	'discharge_date, gender, age_category, race, admission_source, admission_type, ' +
+	'insulin, diabetesmed, discharge_disposition, medical_specialty, payer_code, ' +
+	'readmission_result, lace_result, risk_of_readmission';
+	const query = 'SELECT '+ selectParams +' FROM patient_diabetes_data where admission_date >= $1 and admission_date <= $2';
 
-	client.query('SELECT * FROM patient_diabetes_data', (err, result) => {
-		if (err) {
-			console.log(err);
-		} else {
-			// res.render('index', {recepies: result.rows});
-			res.json({diabetes_data: result.rows})
-			// console.log(result);
-		}
-		client.end();
-	});
+	var start_date = req.query.start_date || '1990';
+	var start_date = start_date + '-01-01';
+	var end_date = req.query.end_date || '2010';
+	var end_date = end_date + '-12-31';
+	var params = [start_date,end_date];
+	
+	pool.query(query, params)
+	  .then(result => {
+	    res.json({diabetes_data: result.rows})
+	  })
+	  .catch(e => console.error(e.stack))
+
+	
 });
 
 app.get('/diabetesList', function(req, res, next){
@@ -61,64 +70,44 @@ app.get('/diabetesList', function(req, res, next){
 	});
 
 	const countQuery = 'SELECT count(*) FROM patient_diabetes_data';
-	// const countQuery = 'SELECT NOW() as now';
 	var rowCount = 0;
 
-	pool.query(countQuery)
-	  .then(res => {
-	    rowCount = res.rows[0]['count'];
-	  })
-	  .catch(e => console.error(e.stack))
-
-	
 	var page = req.query.page || 1;	
-	const query = 'SELECT * FROM patient_diabetes_data OFFSET $1 LIMIT $2';
 	var offset = (page - 1) * limit;
 
+	var start_date = req.query.start_date || '1990';
+	var start_date = start_date + '-01-01';
+	var end_date = req.query.end_date || '2010';
+	var end_date = end_date + '-12-31';
+	var params = [start_date,end_date];
 	
+	const selectParams = 'encounter_id, patient_nbr ,patient_name, admission_date, ' +
+	'discharge_date, gender, age_category, race, admission_source, admission_type, ' +
+	'insulin, diabetesmed, discharge_disposition, medical_specialty, payer_code, ' +
+	'readmission_result, lace_result, risk_of_readmission';
+	const dataQuery = 'SELECT '+ selectParams +' FROM patient_diabetes_data ' +
+	' where admission_date >= $1 and admission_date <= $2 OFFSET $3 LIMIT $4';
+		
 
-	pool.connect((err, client, done) => {
-		if (err) {
-			throw err;
-		} 
+	// To get the total count of records
+	pool.query(countQuery)
+	  .then(countRes => {
+	    rowCount = countRes.rows[0]['count'];
 
-	  	client.query(query, [offset, limit], (err, result) => {
-	    	done();
-
-	    	if (err) {
-	      		console.log(err.stack)
-	    	} else {
-	   //    		res.json({
-				// 	title: 'Diabetes App',
-				// 	diabetes_data: result.rows,
-				// 	current_page: page,
-				// 	page_count: Math.ceil(rowCount / limit)
-				// })
-		    	res.render('index', {
+	    // To get the data based on offset and limit
+	    pool.query(dataQuery, [start_date, end_date, offset,limit])
+	    	.then(result => {
+	    		res.render('patient_list', {
 					title: 'Diabetes App',
 					diabetes_data: result.rows,
 					current_page: page,
 					page_count: Math.ceil(rowCount / limit)
 				});
-	    	}
-	  	});
-	});
+	    	})
+	    	.catch(e => console.error(e.stack))
+	  })
+	  .catch(e => console.error(e.stack))
 
-	// constclient.connect();
-
-	
-	// pool.query(query, [offset, limit], (err, result) => {
-	// 	if (err) {
-	// 		console.log(err);
-	// 	} else {
-	// 		// res.render('index', {recepies: result.rows});
-	// 		res.json({diabetes_data: result.rows})
-	// 		// console.log(result);
-	// 	}
-	// 	// pool.end();
-		
-	// })
-	// ;
 });
 
 

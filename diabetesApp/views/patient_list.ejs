@@ -805,7 +805,7 @@
                             </h2>
                         </div>
                         <div class="body table-responsive">
-                            <table class="table">
+                            <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th scope="col">Encounter No.</th>
@@ -822,7 +822,7 @@
                             </thead>
                             <tbody>
                                 <% diabetes_data.forEach(function(patient){ %>
-                                <tr>
+                                <tr onClick='selectPatient(<%= patient.encounter_id%>)' data-toggle="modal" data-target="#exampleModal">
                                   <td><%= patient.encounter_id%></td>
                                   <td><%= patient.patient_name%></td>
                                   <td><%= new Date(patient.admission_date).toLocaleDateString('en-US',{ year: 'numeric', month: 'long', day: 'numeric' })%></td>
@@ -863,6 +863,33 @@
                                 
                               </ul>
                             </nav>
+                                <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                            <h5 class="modal-title" id="modal-title">Title </h5>
+                                            <table class="table" id="encounter"></table>
+                                            
+                                            
+                                        </div>
+                                        <div class="modal-body">
+                                                
+                                            
+                                            <table class="table pull-left col-md-8" id="patient-record">
+                                            </table>
+                                            <div class="col-md-4">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+
                         </div>
                     </div>
                 </div>
@@ -894,16 +921,84 @@
 
     <!-- Demo Js -->
     <script src="../../js/demo.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.3.3.min.js"></script>
     <script type="text/javascript">
         
-    $(document).ready(function() {
         var objs = <%- JSON.stringify(diabetes_data)%>;
         var new_obj = {}
         objs.forEach(function(ob){
             new_obj[ob.encounter_id] = ob;
         });
-        console.log(new_obj);
+    $(document).ready(function() {
+        AWS.config.update({region:'us-east-1'});
     });
+
+
+    function selectPatient(idparam)
+    {
+        
+        // console.log(new_obj);
+        patient=new_obj[idparam];
+        var predictedScore = predictiveResult($.extend(true, {}, patient))
+
+        document.getElementById('modal-title').innerHTML="Patient Name:"+patient.patient_name+"<br>Encounter ID: "+idparam;
+        var table=document.getElementById('patient-record');
+        
+        
+        modalstr='<tbody id="patient_metrics">';
+            
+            for(key in patient)
+            {
+                modalstr+='<tr><td> '+ key +' </td><td>' + patient[key] + '</td></tr>';
+            }
+            
+        modalstr+='</tbody>';
+
+        table.innerHTML=modalstr;
+    }
+
+
+
+
+    function predictiveResult(finalInput) {
+        
+        delete finalInput['lace_result']
+        delete finalInput['readmission_result']
+        delete finalInput['risk_of_readmission']
+        finalInput['encounter_id'] = finalInput['encounter_id'].toString();
+        finalInput['patient_nbr'] = finalInput['patient_nbr'].toString();
+        
+        console.log(finalInput)
+        var machinelearning = new AWS.MachineLearning({
+                                    accessKeyId: "AKIAIITX6ZJXMVEBNAWA",
+                                    secretAccessKey: "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"
+                                });
+
+        // var obj = eval("(" + finalInput + ')');
+        var params = {
+            MLModelId: 'ml-2BSwrAYL2SX',
+            PredictEndpoint: 'https://realtime.machinelearning.us-east-1.amazonaws.com',
+            Record: finalInput
+        };
+        var request = machinelearning.predict(params);
+        request.on('success', function(resp) { 
+            if(resp.data && resp.data){
+                if(resp.data.Prediction && resp.data.Prediction.predictedScores){
+                    var predictedScore = JSON.stringify(resp.data.Prediction.predictedScores[resp.data.Prediction.predictedLabel]);
+                    var finalScore, resultMessage;
+                    
+                    if(!isNaN(predictedScore)){
+                        finalScore = Math.round(predictedScore * 100);
+                        console.log("FInal score" + finalScore)
+                        document.getElementById('modal-title').innerHTML += "<br> Predictive Result: " + finalScore + "%";
+                    }
+                }
+            }
+        });
+        request.on('error',function(resp){console.log(resp)});
+        request.send();
+    }
+
 
     </script>
 </body>

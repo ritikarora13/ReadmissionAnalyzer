@@ -38,11 +38,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use('/', index);
 // app.use('/api', tasks);
 
+app.get('/dashboard', function(req,res,next){
+	res.render('index');
+});
+
 app.get('/patientlist', function(req, res, next){
 
 	
 	const selectParams = 'encounter_id, patient_nbr ,patient_name, admission_date, ' +
-	'discharge_date, gender, age_category, race, admission_source, admission_type, ' +
+	'discharge_date, gender, age, age_category, race, admission_source, admission_type, ' +
 	'insulin, diabetesmed, discharge_disposition, medical_specialty, payer_code, ' +
 	'readmission_result, lace_result, risk_of_readmission';
 	const query = 'SELECT '+ selectParams +' FROM patient_diabetes_data where admission_date >= $1 and admission_date <= $2';
@@ -86,7 +90,7 @@ app.get('/diabetesList', function(req, res, next){
 	var params = [start_date, end_date, offset,limit];
 	
 	const selectParams = 'encounter_id, patient_nbr ,patient_name, admission_date, ' +
-	'discharge_date, gender, age_category, race, admission_source, admission_type, ' +
+	'discharge_date, gender, age, age_category, race, admission_source, admission_type, ' +
 	'insulin, diabetesmed, discharge_disposition, medical_specialty, payer_code, ' +
 	'readmission_result, lace_result, risk_of_readmission';
 	const dataQuery = 'SELECT '+ selectParams +' FROM patient_diabetes_data ' +

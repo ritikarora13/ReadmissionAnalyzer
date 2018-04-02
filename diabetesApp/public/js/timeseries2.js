@@ -422,8 +422,7 @@ const chart3 = new Chart(tsctx, config);
 function demo_dataplotter()
 {
     var dates={
-        start_year:new Date($("#filterdate1").val()).getFullYear(),
-        end_year:new Date($("#filterdate2").val()).getFullYear()
+        filter_year:new Date($("#yearfilter").val()).getFullYear()
     };
     //alert(dates.startdate);
     // /console.log(dates.enddate);

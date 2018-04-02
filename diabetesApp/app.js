@@ -9,8 +9,7 @@ const app = express();
 // var tasks = require('./routes/tasks');
 
 const port = 3000;
-const limit = 7;
-const strDate = '';
+const limit = 20;
 
 
 // DB connect client
@@ -39,7 +38,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use('/api', tasks);
 
 app.get('/dashboard', function(req,res,next){
-	res.render('index');
+	res.render('index',{filter_year: '1999'});
 });
 
 app.get('/patientlist', function(req, res, next){
@@ -47,22 +46,21 @@ app.get('/patientlist', function(req, res, next){
 	
 	const selectParams = 'encounter_id, patient_nbr ,patient_name, admission_date, ' +
 	'discharge_date, gender, age, age_category, race, admission_source, admission_type, ' +
-	'insulin, diabetesmed, discharge_disposition, medical_specialty, payer_code, ' +
-	'readmission_result, lace_result, risk_of_readmission';
-	const query = 'SELECT '+ selectParams +' FROM patient_diabetes_data where admission_date >= $1 and admission_date <= $2';
+	'time_in_hospital, insulin, diabetesmed, discharge_disposition, medical_specialty, ' +
+	'payer_code, readmission_result, lace_result, risk_of_readmission';
+	const query = 'SELECT '+ selectParams +' FROM demo_data where admission_date >= $1 and admission_date <= $2';
 
-	var start_year = req.query.start_year || '1990';
-	var start_date = start_year + '-01-01';
-	var end_year = req.query.end_year || '2010';
-	var end_date = end_year + '-12-31';
+	var filter_year = req.query.filter_year || '1999';
+	var start_date = filter_year + '-01-01';
+	// var end_year = req.query.end_year || '2010';
+	var end_date = filter_year + '-12-31';
 	var params = [start_date,end_date];
 	
 	pool.query(query, params)
 	  .then(result => {
 	    res.json({
 	    		diabetes_data: result.rows,
-	    		start_year: start_year,
-				end_year: end_year
+	    		filter_year: filter_year
 			});
 	  })
 	  .catch(e => console.error(e.stack))
@@ -77,24 +75,24 @@ app.get('/diabetesList', function(req, res, next){
 	  process.exit(-1);
 	});
 
-	const countQuery = 'SELECT count(*) FROM patient_diabetes_data where admission_date >= $1 and admission_date <= $2';
+	const countQuery = 'SELECT count(*) FROM demo_data where admission_date >= $1 and admission_date <= $2';
 	var rowCount = 0;
 
 	var page = req.query.page || 1;	
 	var offset = (page - 1) * limit;
 
-	var start_year = req.query.start_year || '1990';
-	var start_date = start_year + '-01-01';
-	var end_year = req.query.end_year || '2010';
-	var end_date = end_year + '-12-31';
+	var filter_year = req.query.filter_year || '1999';
+	var start_date = filter_year + '-01-01';
+	// var end_year = req.query.end_year || '2010';
+	var end_date = filter_year + '-12-31';
 	var params = [start_date, end_date, offset,limit];
 	
 	const selectParams = 'encounter_id, patient_nbr ,patient_name, admission_date, ' +
 	'discharge_date, gender, age, age_category, race, admission_source, admission_type, ' +
-	'insulin, diabetesmed, discharge_disposition, medical_specialty, payer_code, ' +
-	'readmission_result, lace_result, risk_of_readmission';
-	const dataQuery = 'SELECT '+ selectParams +' FROM patient_diabetes_data ' +
-	' where admission_date >= $1 and admission_date <= $2 OFFSET $3 LIMIT $4';
+	'time_in_hospital, insulin, diabetesmed, discharge_disposition, medical_specialty, ' +
+	'payer_code, readmission_result, lace_result, risk_of_readmission';
+	const dataQuery = 'SELECT '+ selectParams +' FROM demo_data ' +
+	' where admission_date >= $1 and admission_date <= $2 order by admission_date ASC OFFSET $3 LIMIT $4 ';
 		
 
 	// To get the total count of records
@@ -110,14 +108,40 @@ app.get('/diabetesList', function(req, res, next){
 					diabetes_data: result.rows,
 					current_page: page,
 					page_count: Math.ceil(rowCount / limit),
-					start_year: start_year,
-					end_year: end_year
+					filter_year: filter_year
 				});
 	    	})
 	    	.catch(e => console.error(e.stack))
 	  })
 	  .catch(e => console.error(e.stack))
 
+});
+
+app.get('/pati', function(req, res, next){
+
+	
+	const selectParams = 'encounter_id, patient_nbr ,patient_name, admission_date, ' +
+	'discharge_date, gender, age, age_category, race, admission_source, admission_type, ' +
+	'insulin, diabetesmed, discharge_disposition, medical_specialty, payer_code, ' +
+	'readmission_result, lace_result, risk_of_readmission';
+	const query = 'SELECT '+ selectParams +' FROM patient_diabetes_data where admission_date >= $1 and admission_date <= $2';
+
+	var filter_year = req.query.filter_year || '1999';
+	var start_date = filter_year + '-01-01';
+	// var end_year = req.query.end_year || '2010';
+	var end_date = filter_year + '-12-31';
+	var params = [start_date,end_date];
+	
+	pool.query(query, params)
+	  .then(result => {
+	    res.json({
+	    		diabetes_data: result.rows,
+	    		filter_year: filter_year
+			});
+	  })
+	  .catch(e => console.error(e.stack))
+
+	
 });
 
 
